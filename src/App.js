@@ -1,22 +1,22 @@
 import React, { Component } from 'react';
-import Portfolio from './components/Portfolio';
-import './App.css';
+import ReactDOM from 'react-dom';
+import Portfolio from './components/Portfolio'
 
-class App extends Component {
-  constructor(){
-    super();
-      this.state = {
-        investor: 'Pele'
-      }
-  }
+export default class App extends Component {
+    constructor(){
+        super();
+        this.state = {
+            investor: 'Pele'
+        }
+    }
+  
+    render() {
+        return (
+            <div className="App">
+                <Portfolio investor={this.state.investor} />
+            </div>
+        );
+    }
+ }
 
-  render() {
-    return (
-      <div className="App">
-      <Portfolio investor={this.state.investor} />
-      </div>
-    );
-  }
-}
-
-export default App;
+ReactDOM.render(<App />, document.getElementById('portfolio'));
