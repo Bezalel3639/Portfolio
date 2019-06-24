@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import $ from 'jquery';
 
 class Portfolio extends Component {
     constructor(props) {
@@ -9,14 +10,56 @@ class Portfolio extends Component {
             rows: [
                 {
                     symbol: 'ETH',
+                    rate: 'N/A',
                     amount: 3.44
                 },
                 {
                     symbol: 'BTC',
+                    rate: 'N/A',
                     amount: 0.35
+                },
+                {
+                    symbol: 'LTC',
+                    rate: 'N/A',
+                    amount: 0.11
+                },
+                {
+                    symbol: 'WAVES',
+                    rate: 'N/A',
+                    amount: 0.11
                 }
             ]
         }      
+    }
+
+    componentWillMount(){
+        // ETH rate 
+        this.getURLData(0, "http://localhost:8080/trading_api_62119/v1/Ethereum/ETHRate/"); 
+        // BTC rate 
+        this.getURLData(1, "http://localhost:8080/trading_api_62119/v1/Bitcoin/BTCRate/");
+        // LTC rate 
+        this.getURLData(2, "http://localhost:8080/trading_api_62119/v1/Litecoin/LTCRate/"); 
+        // Waves rate 
+        this.getURLData(3, "http://localhost:8080/trading_api_62119/v1/Waves/WavesRate/");   
+    }
+
+    getURLData(index, URL){
+         $.ajax({
+            url: URL, 
+            dataType: 'json',
+            contentType: 'json',
+            cache: false,
+            success: function(data){       
+                const rows = [...this.state.rows];
+                const current_symbol = rows[index].symbol;
+                const current_amount = rows[index].amount;
+                rows[index] = {symbol: current_symbol, rate: data, amount: current_amount};
+                this.setState({ rows });
+            }.bind(this),
+                error: function(xhr, status, err){           
+                console.log(err);
+            }
+        });
     }
   
     addRow () {
@@ -54,7 +97,7 @@ class Portfolio extends Component {
                 &nbsp;
                 <table border="1">
                     <thead>
-                        <tr><th>#</th><th>&nbsp;Symbol&nbsp;</th><th>Amount</th><th>&nbsp;</th></tr>
+                        <tr><th>#</th><th>&nbsp;Symbol&nbsp;</th><th>&nbsp;Rate (USD)&nbsp;</th><th>Amount</th><th>&nbsp;</th></tr>
                     </thead>
                     <tbody>
                     {
@@ -62,6 +105,7 @@ class Portfolio extends Component {
                             <tr key={index}>
                                 <td>{index}</td>
                                 <td>{this.state.rows[index].symbol}</td>
+                                <td>{this.state.rows[index].rate}</td>
                                 <td><input
                                     type="text"
                                     value={this.state.rows[index].amount}
