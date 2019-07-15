@@ -5,18 +5,9 @@ import {adress_data} from './Data';
 class ModalDialogWithdraw extends Component {
     constructor(props) {
         super(props);
-        //console.log ("ModalDialogWithdraw ");
-        //console.log (adress_data.map.get("3N12JNDNAYNE2dRSGbxK3UQXfVJnXaMwiYT"));        
-    }
-
-    componentWillMount(){ 
-        console.log ("ModalDialogWithdraw ");
-        //console.log (adress_data.map.get("3N12JNDNAYNE2dRSGbxK3UQXfVJnXaMwiYT"));
-        //console.log (adress_data);  
     }
 
     sendMessage() {
-         //alert( adress_data.length ); // OK, 2
         alert( adress_data[0].seed ); // OK, 2
     }
 
@@ -48,4 +39,5 @@ class ModalDialogWithdraw extends Component {
         );
     }
 }
+
 export default ModalDialogWithdraw;
