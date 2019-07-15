@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Button } from 'react-bootstrap';
 import $ from 'jquery';
 
 class ReservesSandbox extends Component {
@@ -42,37 +43,37 @@ class ReservesSandbox extends Component {
         }      
     }
 
-    componentWillMount(){
+    componentWillMount(){  
         // BTC balance 
-        this.getURLData(1, "https://f5f48709.ngrok.io/trading_api_7219/v1/Bitcoin/Testnet/Balance/mzYNYmN5n344UQpY9y3rTGMjRjCmet69Hg"); 
+        this.getURLData(1, "https://" + this.props.ngrok_address + ".ngrok.io/trading_api_7219/v1/Bitcoin/Testnet/Balance/mzYNYmN5n344UQpY9y3rTGMjRjCmet69Hg"); 
  
         // WAVES balance 
-        this.getURLData(3, "https://f5f48709.ngrok.io/trading_api_7219/v1/Waves/Testnet/Balance/3MyCTgnHJ5vHdto2gEt1NGatXz17nds11cd"); 
+        this.getURLData(3, "http://18.220.221.123:8080/trading_api_7219/v1/Waves/Testnet/Balance/3MyCTgnHJ5vHdto2gEt1NGatXz17nds11cd");
     }
     
      getURLData(index, URL){
         $.ajax({
-           url: URL, 
-           dataType: 'json',
-           contentType: 'json',
-           cache: false,
-           success: function(data){       
-               const rows = [...this.state.rows];
-               const current_symbol = rows[index].symbol;
-               const current_address = rows[index].address;
-               const current_explorer = rows[index].explorer;
-               const current_balance = rows[index].balance;
-               rows[index] = {symbol: current_symbol, address: current_address, explorer: current_explorer, balance: data};
-               this.setState({ rows });
+            url: URL, 
+            dataType: 'json',
+            contentType: 'json',
+            cache: false,
+            success: function(data){       
+                const rows = [...this.state.rows];
+                const current_symbol = rows[index].symbol;
+                const current_address = rows[index].address;
+                const current_explorer = rows[index].explorer;
+                const current_balance = rows[index].balance;
+                rows[index] = {symbol: current_symbol, address: current_address, explorer: current_explorer, balance: data};
+                this.setState({ rows });
            }.bind(this),
-               error: function(xhr, status, err){           
-               console.log(err);
+                error: function(xhr, status, err){           
+                console.log(err);
            }
        });
     }
 
     render() {
-          return (
+        return (
             <div align="center">
                 <h3 align="center">Reserves Sandbox</h3>
                 <table border="1"> 
@@ -86,27 +87,27 @@ class ReservesSandbox extends Component {
                                 <td>{index}</td>                                  
                                 <td>{this.state.rows[index].symbol}</td>
                                 {
-                                this.state.rows[index].symbol == 'ETH'  &&
-                                <td>{this.state.rows[index].address}</td>
+                                    this.state.rows[index].symbol == 'ETH'  &&
+                                    <td>{this.state.rows[index].address}</td>
                                 }
                                 {
-                                this.state.rows[index].symbol == 'BTC' &&
-                                <td><a href={this.state.rows[index].explorer + this.state.rows[index].address}>{this.state.rows[index].address}</a></td>
+                                    this.state.rows[index].symbol == 'BTC' &&
+                                    <td><a href={this.state.rows[index].explorer + this.state.rows[index].address}>{this.state.rows[index].address}</a></td>
                                 }
                                 {
-                                this.state.rows[index].symbol == 'LTC'  &&
-                                <td>{this.state.rows[index].address}</td>
+                                    this.state.rows[index].symbol == 'LTC'  &&
+                                    <td>{this.state.rows[index].address}</td>
                                 } 
                                 {
-                                this.state.rows[index].symbol == 'WAVES' &&
-                                <td><a href={this.state.rows[index].explorer + this.state.rows[index].address}>{this.state.rows[index].address}</a></td>
+                                    this.state.rows[index].symbol == 'WAVES' &&
+                                    <td><a href={this.state.rows[index].explorer + this.state.rows[index].address}>{this.state.rows[index].address}</a></td>
                                 }
                                 {
-                                this.state.rows[index].symbol == 'USD'  &&
-                                <td>{this.state.rows[index].address}</td>
+                                    this.state.rows[index].symbol == 'USD'  &&
+                                    <td>{this.state.rows[index].address}</td>
                                 }                          
                                 <td>{this.state.rows[index].balance}</td>
-                                <td><button>Delete</button></td>
+                                <td><Button>Delete</Button></td>
                             </tr>
                         ))
                     }
