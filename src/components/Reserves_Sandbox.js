@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Button } from 'react-bootstrap';
 import $ from 'jquery';
+import {endpoints_base} from './Data';
 
 class ReservesSandbox extends Component {
     constructor(props) {
@@ -11,8 +12,8 @@ class ReservesSandbox extends Component {
             rows: [
                 {
                     symbol: 'ETH',
-                    address: 'N/A',
-                    explorer: 'N/A',
+                    address: '0x0d6f2055eedae95ccd888661aa5e3c05c1aeb64d',
+                    explorer: 'https://ropsten.etherscan.io/address/',
                     balance: 'N/A'
                 },
                 {
@@ -38,17 +39,26 @@ class ReservesSandbox extends Component {
                     address: 'PayPal',
                     explorer: 'N/A',
                     balance: 'N/A'
-                }
+                },
+                {
+                    symbol: 'HKD',
+                    address: 'PayPal',
+                    explorer: 'N/A',
+                    balance: 'N/A'
+                } 
            ]
         }      
     }
 
-    componentWillMount(){  
+    componentWillMount(){
+        // ETC balance 
+        this.getURLData(0, endpoints_base + "/v1/Ethereum/Testnet/Balance/0x0d6f2055eedae95ccd888661aa5e3c05c1aeb64d");
+
         // BTC balance 
-        this.getURLData(1, "https://" + this.props.ngrok_address + ".ngrok.io/trading_api_7219/v1/Bitcoin/Testnet/Balance/mzYNYmN5n344UQpY9y3rTGMjRjCmet69Hg"); 
- 
+        this.getURLData(1, endpoints_base + "/v1/Bitcoin/Testnet/Balance/mzYNYmN5n344UQpY9y3rTGMjRjCmet69Hg");
+
         // WAVES balance 
-        this.getURLData(3, "http://18.220.221.123:8080/trading_api_7219/v1/Waves/Testnet/Balance/3MyCTgnHJ5vHdto2gEt1NGatXz17nds11cd");
+        this.getURLData(3, endpoints_base + "/v1/Waves/Testnet/Balance/3MyCTgnHJ5vHdto2gEt1NGatXz17nds11cd");
     }
     
      getURLData(index, URL){
@@ -87,8 +97,8 @@ class ReservesSandbox extends Component {
                                 <td>{index}</td>                                  
                                 <td>{this.state.rows[index].symbol}</td>
                                 {
-                                    this.state.rows[index].symbol == 'ETH'  &&
-                                    <td>{this.state.rows[index].address}</td>
+                                    this.state.rows[index].symbol == 'ETH'  &&                                    
+                                    <td><a href={this.state.rows[index].explorer + this.state.rows[index].address}>{this.state.rows[index].address}</a></td>                                    
                                 }
                                 {
                                     this.state.rows[index].symbol == 'BTC' &&
@@ -104,9 +114,37 @@ class ReservesSandbox extends Component {
                                 }
                                 {
                                     this.state.rows[index].symbol == 'USD'  &&
+                                    <td>{this.state.rows[index].address}</td>    
+                                }   
+                                {
+                                    this.state.rows[index].symbol == 'HKD'  &&
                                     <td>{this.state.rows[index].address}</td>
-                                }                          
-                                <td>{this.state.rows[index].balance}</td>
+                                } 
+                                {
+                                    this.state.rows[index].symbol == 'ETH' &&
+                                    /* 1 ETH = 1 000 000 000 000 000 000 WEI (18 zeros) */                              
+                                    <td>{this.state.rows[index].balance / 1000000000000000000} ({this.state.rows[index].balance} <b>wei</b>)</td>
+                                } 
+                                {
+                                    this.state.rows[index].symbol == 'BTC' &&
+                                    <td>{this.state.rows[index].balance / 100000000} ({this.state.rows[index].balance} <b>satoshi</b>)</td>
+                                } 
+                                {
+                                    this.state.rows[index].symbol == 'LTC' &&
+                                    <td>{this.state.rows[index].balance}</td>
+                                }
+                                {
+                                    this.state.rows[index].symbol == 'WAVES' &&
+                                    <td>{this.state.rows[index].balance / 100000000} ({this.state.rows[index].balance} <b>units</b>)</td>
+                                }
+                                {
+                                    this.state.rows[index].symbol == 'USD' &&
+                                    <td>{this.state.rows[index].balance}</td>
+                                } 
+                                {
+                                    this.state.rows[index].symbol == 'HKD' &&
+                                    <td>{this.state.rows[index].balance}</td>
+                                }  
                                 <td><Button>Delete</Button></td>
                             </tr>
                         ))
