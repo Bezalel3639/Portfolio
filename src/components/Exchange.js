@@ -11,7 +11,9 @@ class Exchange extends Component {
             ticker: 'Please select assets for exchange',
             give_value: '',
             get_value: '',
-            isfixed_give: true
+            isfixed_give: true,
+            selected_pair: '',
+            execute_disabled: true
         } 
     } 
     
@@ -20,7 +22,7 @@ class Exchange extends Component {
 
             // Validate if different currencies are selected
             if (options1.value == options2.value) {
-                this.setState({ ticker : "The currennies should be different!" }); 
+                this.setState({ ticker : "The currencies should be different!" }); 
                 return;
             }
 
@@ -47,8 +49,7 @@ class Exchange extends Component {
                 return;
             }
 
-            var baseURL = endpoints_base + "/v1/Exchange/Testnet/GetPairQuote/";    
-            
+            var baseURL = endpoints_base + "/v1/Exchange/Testnet/GetPairQuote/";   
             if (this.isGiveBaseAsset(options1.value, options2.value)) {
                 // BUY
                 var URL = baseURL + "BUY/" + options1.value + "/1/" + options2.value;
@@ -91,15 +92,15 @@ class Exchange extends Component {
     getQuote() {
         if (options1.value != 'Select asset' && options2.value != 'Select asset') {
             
-            // Validate if the pair is supported
-            if (!((options1.value == "ETH" && options2.value == "WAVES") || (options1.value == "WAVES" && options2.value == "ETH"))) {
-                alert ("The trading pair is not supported at the moment");
-                return;
-            }
-
             // Validate that pair should be different
             if (options1.value == options2.value) {
                 alert ("Wrong selection!");
+                return;
+            }
+            
+            // Validate if the pair is supported
+            if (!((options1.value == "ETH" && options2.value == "WAVES") || (options1.value == "WAVES" && options2.value == "ETH"))) {
+                alert ("The trading pair is not supported at the moment");
                 return;
             }
 
@@ -118,9 +119,7 @@ class Exchange extends Component {
                         return;
                     } 
 
-                    alert (this.state.give_value); // OK
                     var URL = baseURL + "BUY/" + options1.value + "/" + this.state.give_value + "/" + options2.value;
-                    console.log(URL);
                     this.getURLData(URL, true); 
                  } else {
                     // TODO: this scenario  
@@ -129,14 +128,11 @@ class Exchange extends Component {
                 // SELL
                 if (this.state.isfixed_give) {
                     var URL = baseURL + "SELL/" + options2.value + "/1/" + options1.value;
-                    console.log("ETH_WAVES_SELL_FIXEDBASEFALSE");
-                    console.log(URL);
                     this.getURLData(URL, true); 
                 } else {
                     var URL = baseURL + "SELL/" + options2.value + "/" + this.state.get_value + "/" + options1.value;
-                    console.log("ETH_WAVES_SELL_FIXEDBASETRUE");
-                    console.log(URL);
-                    this.getURLData(URL, false); 
+                    this.setState({ selected_pair : "ETH_WAVES_SELL_FIXEDBASETRUE" });
+                    this.getURLData(URL, false);                      
                 }
             }
         }
@@ -149,13 +145,16 @@ class Exchange extends Component {
             contentType: 'json',
             cache: false,
             success: function(data) {     
-                console.log ("getURLData> " + data);
+
                 if (fixedgive) {                   
                      this.setState({ get_value : this.state.give_value/data });
                 }
                 else {
                      this.setState({ give_value : data });
                 }
+
+                // Enable Execute button
+                this.setState({ execute_disabled: false }); 
             }.bind(this),
                 error: function(xhr, status, err){           
                 console.log(err);
@@ -163,7 +162,7 @@ class Exchange extends Component {
         });
     }
  
-    // When pair is selected, one of assets is base, and the other is quote asset by
+    // When pair is selected one of assets is base, and the other is quote asset by
     // by this convention. 
     isGiveBaseAsset(asset_give, asset_get) {
 
@@ -193,7 +192,7 @@ class Exchange extends Component {
         else if (asset_give == "WAVES" && asset_get == "BTC")
             return false;
         else if (asset_give == "WAVES" && assetl_get == "LTC")
-            return false;            
+            return false;
     }
 
     executeTrade() {
@@ -205,7 +204,7 @@ class Exchange extends Component {
         var userETH_address = "0x8d8057d0810996077effe2283ef5788178a91e61";
         var userWAVES_address = "3MqnoW5aY4x2eiwmM4ee1VjWwuJEvKnffj8";
         var fixedbaseamount = "true"; 
-        
+
         switch (trading_pair) {
             case "ETH_WAVES_BUY_FIXEDBASETRUE":
                 break;
@@ -219,10 +218,9 @@ class Exchange extends Component {
                 break;
         }
 
-        console.log("ExecuteTrade> " + exchangeURL); 
-
         // Run exchange
-        this.exchangeTradingPair(exchangeURL)         
+        this.exchangeTradingPair(exchangeURL) ; 
+        this.setState({ selected_pair : '' });       
     }
 
     exchangeTradingPair(URL) { 
@@ -232,7 +230,7 @@ class Exchange extends Component {
             contentType: 'json',
             cache: false,
             success: function(data){ 
-                console.log(dada);
+                console.log(data);
             }.bind(this),
                 error: function(xhr, status, err){           
                 console.log(err);
@@ -245,7 +243,7 @@ class Exchange extends Component {
             <div align="center">
             <h3 align="center">Sandbox Exchange</h3>
             &nbsp;You give: &nbsp; 
-            <input type="text" size="5" value="1" value={this.state.give_value} onChange={this.updateInput1.bind(this)}/>&nbsp;
+            <input type="text" size="12" value="1" value={this.state.give_value} onChange={this.updateInput1.bind(this)}/>&nbsp;
             <select id="options1" onChange={this.handleSelect1.bind(this)}>
                 <option>Select asset</option>
                 <option>ETH</option>
@@ -254,7 +252,7 @@ class Exchange extends Component {
                 <option>WAVES</option>
             </select>
             &nbsp; You want: &nbsp; 
-            <input type="text" size="5" value={this.state.get_value} onChange={this.updateInput2.bind(this)}/>&nbsp;
+            <input type="text" size="12" value={this.state.get_value} onChange={this.updateInput2.bind(this)}/>&nbsp;
             <select id="options2" onChange={this.handleSelect2.bind(this)}>
                 <option>Select asset</option>
                 <option>ETH</option>
@@ -263,10 +261,10 @@ class Exchange extends Component {
                 <option>WAVES</option>
             </select>&nbsp; 
             <Button onClick={this.getQuote.bind(this)}>Estimate</Button>&nbsp;    
-            <Button onClick={this.executeTrade.bind(this)}>Execute</Button>
+            <Button disabled={this.state.execute_disabled} onClick={this.executeTrade.bind(this)}>Execute</Button>
             <div>{<br></br>}</div>
             <div>
-                <input type="text" className="no-border" size="50" id="rateinfo" value={this.state.ticker}></input> 
+                <input type="text" readOnly className="no-border" size="50" id="rateinfo" value={this.state.ticker}></input> 
             </div>
             </div>     
         );
