@@ -7,14 +7,13 @@ class Portfolio extends Component {
     constructor(props) {
         super();
         this.state = {
-            symbol: 'BTC',
             newsymbol: '',
             rows: []
         }      
     }
   
     componentWillMount(){
-        this.getMongoDBData(endpoints_base + "/v1/BackOffice/GetUserAssets/Pele/"); // compatible mockup is used
+         this.getMongoDBData(endpoints_base + "/v1/BackOffice/GetAssets/" + this.props.investor);
     }
 
     updateRate(index, asset) {
@@ -43,6 +42,12 @@ class Portfolio extends Component {
             this.getURLBalanceData(index, URL);
         } else if (asset == 'WAVES') {
             URL = endpoints_base + "/v1/Waves/Balance/" + address;
+            this.getURLBalanceData(index, URL); 
+        } else if (asset == 'USD' && address == 'ePay') {
+            URL = endpoints_base + "/v1/FiatSolutions/GetBalance/malevany%40gmail.com/USD";
+            this.getURLBalanceData(index, URL); 
+        } else if (asset == 'HKD' && address == 'ePay') {
+            URL = endpoints_base + "/v1/FiatSolutions/GetBalance/malevany%40gmail.com/USD";
             this.getURLBalanceData(index, URL); 
         } else {
             console.log ("Currency is fiat");
@@ -76,7 +81,7 @@ class Portfolio extends Component {
             dataType: 'json',
             contentType: 'json',
             cache: false,
-            success: function(data){               
+            success: function(data){          
                 const rows = [...this.state.rows];  
                 const current_symbol = rows[index].name;
                 const current_rate = rows[index].rate;                 
@@ -114,16 +119,25 @@ class Portfolio extends Component {
         return false;
     }
 
+    isCrypto(asset) {
+        if (asset == 'BTC' || asset == 'ETH' || asset == 'WAVES') {
+            return true; 
+        } else {
+            return false;
+        }
+        return false;
+    }
+
     getUnits(asset) {
         var units = new Object();
         if (asset == 'BTC') {
             units.name = "Satoshi";
             units.base = 100000000;
         } else if (asset == 'ETH') {
-            units.name = "WEI";
+            units.name = "Wei";
             units.base = 1000000000000000000; // 1 ETH = 1 000 000 000 000 000 000 WEI (18 zeros)
         } else if (asset == 'WAVES') {
-            units.name = "Waves base unit";
+            units.name = "Waves base units";
             units.base = 100000000; 
         } else {
             return null;
@@ -132,8 +146,21 @@ class Portfolio extends Component {
     }
 
     getMongoDBData(URL) {
-        const data = [{"address":"0xe40a4a3ebfe28dcbf5613df090fce37bceaa4ae2","name":"ETH"},{"address":"0xfe514985828d627a2633a32670f54a9bbb39706f","name":"ETH"},{"address":"1BivL49tRZ956dU3PEs6Sqs1Yx9MLzNn7P","name":"BTC"},{"address":"none","name":"LTC"},{"address":"3PCSuxn6F4pnLe4X9THYPopWhaqh86jJB6B","name":"WAVES"},{"address":"PayPal","name":"USD"},{"address":"PayPal","name":"HKD"}];
-        
+        $.ajax({
+            url: URL, 
+            dataType: 'json',
+            contentType: 'json',
+            cache: false,
+            success: function(data) {
+                this.populateTable(data);             
+            }.bind(this),
+                error: function(xhr, status, err){           
+                console.log(err);
+            }
+        });
+    }
+
+    populateTable(data) {
         var data_update = new Array();
 
         // Modify array of objects to include rate, amount, and block explorer.        
@@ -141,14 +168,13 @@ class Portfolio extends Component {
         var element2 = {amount: 'N/A'};
         for (let i = 0; i < data.length; i++) {
             var obj = data[i];
-            var element3 = {explorer: 'https://etherscan.io/address/'};
             var element3 = {explorer: this.getCryptoAssetExplorer(data[i].name)};
             const returnedTarget = Object.assign(obj, element1, element2, element3);
             data_update[i] = returnedTarget;
         }
 
         this.setState({ rows: data_update });
-     
+        
         // Update rates from endpoints
         for (let i = 0; i < data.length; i++) {
             this.updateRate(i, data[i].name);
@@ -156,9 +182,9 @@ class Portfolio extends Component {
 
         // Update amounts from endpoints
         for (let i = 0; i < data.length; i++) {
-             this.updateAmount(i, data[i].name, data[i].address);
+            this.updateAmount(i, data[i].name, data[i].address);
         }
-     }
+    }
   
     addRow () {
         const item = {symbol: this.state.newsymbol, amount: ""};
@@ -187,11 +213,6 @@ class Portfolio extends Component {
         return (
             <div align="center">
                 <h3 align="center">Investor Portfolio: {this.props.investor}</h3>
-                {/* <div>
-                    <input type="text" size="5" onChange={this.updateAdd.bind(this)}/>
-                    &nbsp;&nbsp;
-                    <Button onClick={this.addRow.bind(this)}>Add</Button>
-                </div> */}
                 &nbsp;
                 <table border="1">
                     <thead align="center">
@@ -200,26 +221,27 @@ class Portfolio extends Component {
                     <tbody>
                     {
                         this.state.rows.map((item, index) => (
+                            this.state.rows[index].address != 'PayPal' &&  // show row conditionally                         
                             <tr key={index}>
                                 <td>{index}</td>
                                 <td>{this.state.rows[index].name}</td>
-                                <td>{this.state.rows[index].rate}</td>
+                                <td>{this.state.rows[index].rate}</td>  
                                 {
                                     this.isShowLink(this.state.rows[index].name) ? (
                                         <td><a href={this.state.rows[index].explorer + this.state.rows[index].address}>{this.state.rows[index].address}</a></td>
                                     ) : (
-                                        <td>{this.state.rows[index].address}</td>   
+                                        <td>{this.state.rows[index].address != 'ePay' ? this.state.rows[index].address : 'Gateway' }</td>   
                                     )
                                 }
                                 {
-                                    this.state.rows[index].amount != 'N/A' ? (
-                                        <td title={this.state.rows[index].amount  + " (" + this.getUnits(this.state.rows[index].name).name + ")"}>{Number(this.state.rows[index].amount / this.getUnits(this.state.rows[index].name).base).toFixed(5)}</td>
+                                        this.isCrypto(this.state.rows[index].name) ? (
+                                        <td title={this.state.rows[index].amount + " (" + this.getUnits(this.state.rows[index].name).name + ")"}>{Number(this.state.rows[index].amount / this.getUnits(this.state.rows[index].name).base).toFixed(5)}</td>
                                         ) : (
-                                        <td>{this.state.rows[index].amount}</td>
+                                        <td>{this.state.rows[index].amount != 'N/A' ? this.state.rows[index].amount.toFixed(2) : 'N/A'}</td>
                                     ) 
                                 }
                                 {                                    
-                                    this.state.rows[index].amount != 'N/A' ? (
+                                    this.isCrypto(this.state.rows[index].name) ? (
                                         <td>{Number((this.state.rows[index].amount / this.getUnits(this.state.rows[index].name).base)*this.state.rows[index].rate).toFixed(2)}</td>
                                         ) : (
                                         <td>0</td>
