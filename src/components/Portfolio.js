@@ -127,7 +127,7 @@ class Portfolio extends Component {
         return false;
     }
 
-    // not used, probable remove or have property for each asset (crypto or fiat)
+    // Not used, probable remove or have property for each asset (crypto or fiat)
     isFiat(asset) {
         if (asset == 'USD' || asset == 'HKD') {
             return true; 
