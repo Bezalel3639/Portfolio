@@ -3,6 +3,7 @@ import ModalDialogDeposit from './ModalDialog_Deposit';
 import ModalDialogWithdraw from './ModalDialog_Withdraw';
 import { Button } from 'react-bootstrap';
 import $ from 'jquery';
+import {endpoints_base} from './Data';
 
 class BalanceSandbox extends Component {
     constructor(props) {
@@ -15,8 +16,8 @@ class BalanceSandbox extends Component {
             rows: [
                 {
                     symbol: 'ETH',
-                    address: 'N/A',
-                    explorer: 'N/A',                    
+                    address: '0x8d8057d0810996077effe2283ef5788178a91e61',
+                    explorer: 'https://ropsten.etherscan.io/address/',                    
                     balance: 'N/A'
                 },
                 {
@@ -26,6 +27,12 @@ class BalanceSandbox extends Component {
                     balance: 0.0
                 },
                 {
+                    symbol: 'BTC',
+                    address: 'mowu56fBGxQtB7CAkS3b39mDy56YGMSfTR',
+                    explorer: 'https://live.blockcypher.com/btc-testnet/address/',
+                    balance: 0.0
+                }, 
+                {
                     symbol: 'LTC',
                     address: 'N/A',
                     explorer: 'N/A',
@@ -33,7 +40,7 @@ class BalanceSandbox extends Component {
                 },  
                 {
                     symbol: 'WAVES',
-                    address: '3MyCTgnHJ5vHdto2gEt1NGatXz17nds11cd',
+                    address: '3MqnoW5aY4x2eiwmM4ee1VjWwuJEvKnffj8',
                     explorer: 'https://wavesexplorer.com/testnet/address/',
                     balance: 0.0
                 },
@@ -47,12 +54,18 @@ class BalanceSandbox extends Component {
         }      
     }
 
-    componentWillMount(){     
+    componentWillMount(){
+        // ETH
+        this.getURLData(0, endpoints_base + "/v1/Ethereum/Testnet/Balance/0x8d8057d0810996077effe2283ef5788178a91e61");
+        
         // BTC 
-        this.getURLData(1, "https://" + this.props.ngrok_address + ".ngrok.io/trading_api_7219/v1/Bitcoin/Testnet/Balance/2N6V12gcR2XaFGFMGK7qeNTjqcxo3wAzWdp");
+        this.getURLData(1, endpoints_base + "/v1/Bitcoin/Testnet/Balance/2N6V12gcR2XaFGFMGK7qeNTjqcxo3wAzWdp");
+     
+        // BTC 
+        this.getURLData(2, endpoints_base + "/v1/Bitcoin/Testnet/Balance/mowu56fBGxQtB7CAkS3b39mDy56YGMSfTR");
 
         // Waves rate
-        this.getURLData(3, "https://" + this.props.ngrok_address + ".ngrok.io/trading_api_63019/v1/Waves/Testnet/Balance/3N12JNDNAYNE2dRSGbxK3UQXfVJnXaMwiYT");
+        this.getURLData(4, endpoints_base + "/v1/Waves/Testnet/Balance/3MqnoW5aY4x2eiwmM4ee1VjWwuJEvKnffj8"); 
     }
 
     getURLData(index, URL){
@@ -69,6 +82,10 @@ class BalanceSandbox extends Component {
                 const current_balance = rows[index].balance;
                 rows[index] = {symbol: current_symbol, address: current_address, explorer: current_explorer, balance: data};
                 this.setState({ rows });
+
+                // Pass rows to parent
+                const {dataCallback_userBalanceSandbox} = this.props; 
+                dataCallback_userBalanceSandbox(rows);
             }.bind(this),
                 error: function(xhr, status, err){           
                 console.log(err);
@@ -83,8 +100,8 @@ class BalanceSandbox extends Component {
             <div align="center">                
                 <h3 align="center">Investor Sandbox Balance: {this.props.investor}</h3>
                 <table border="1">
-                <thead>
-                        <tr><th>#</th><th>&nbsp;Symbol&nbsp;</th><th>&nbsp;Address&nbsp;</th><th>Balance</th><th>&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th></tr>
+                    <thead>
+                        <tr align="center"><th>#</th><th>&nbsp;Symbol&nbsp;</th><th>&nbsp;Address&nbsp;</th><th>Balance</th><th>&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th></tr>
                     </thead>
                     <tbody>
                     {
@@ -94,7 +111,7 @@ class BalanceSandbox extends Component {
                                 <td>{this.state.rows[index].symbol}</td>                               
                                 {
                                     this.state.rows[index].symbol == 'ETH'  &&
-                                    <td>{this.state.rows[index].address}</td>
+                                    <td><a href={this.state.rows[index].explorer + this.state.rows[index].address}>{this.state.rows[index].address}</a></td>
                                 }
                                 {
                                     this.state.rows[index].symbol == 'BTC' &&
@@ -111,8 +128,34 @@ class BalanceSandbox extends Component {
                                 {
                                     this.state.rows[index].symbol == 'USD'  &&
                                     <td>{this.state.rows[index].address}</td>
-                                }                                     
-                                <td>{this.state.rows[index].balance}</td>
+                                } 
+
+                                {
+                                    this.state.rows[index].symbol == 'ETH' &&
+                                    /* 1 ETH = 1 000 000 000 000 000 000 WEI (18 zeros) */                              
+                                    <td>{this.state.rows[index].balance / 1000000000000000000} ({this.state.rows[index].balance} <b>wei</b>)</td>
+                                } 
+                                {
+                                    this.state.rows[index].symbol == 'BTC' &&
+                                    <td>{this.state.rows[index].balance / 100000000} ({this.state.rows[index].balance} <b>satoshi</b>)</td>
+                                } 
+                                {
+                                    this.state.rows[index].symbol == 'LTC' &&
+                                    <td>{this.state.rows[index].balance}</td>
+                                }
+                                {
+                                    this.state.rows[index].symbol == 'WAVES' &&
+                                    <td>{this.state.rows[index].balance / 100000000} ({this.state.rows[index].balance} <b>units</b>)</td>
+                                }
+                                {
+                                    this.state.rows[index].symbol == 'USD' &&
+                                    <td>{this.state.rows[index].balance}</td>
+                                } 
+                                {
+                                    this.state.rows[index].symbol == 'HKD' &&
+                                    <td>{this.state.rows[index].balance}</td>
+                                }
+ 
                                 <td><Button onClick={()=>this.setState({ modalShow: true })}>Deposit</Button></td>
                                 <td><Button onClick={()=>this.setState({ modalWithdrawShow: true })}>Withdraw</Button></td>
                                 <td><Button>Delete</Button></td>
