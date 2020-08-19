@@ -121,12 +121,7 @@ class BalanceSandbox extends Component {
                 const current_address = rows[index].address;
                 const current_explorer = rows[index].explorer;
                 rows[index] = {name: current_symbol, address: current_address, explorer: current_explorer, amount: data};
-                this.setState({ rows });
-
-                // TODO: do I need it?
-                // Pass rows to parent
-                const {dataCallback_userBalanceSandbox} = this.props; 
-                dataCallback_userBalanceSandbox(rows);
+                this.setState({ rows }); 
             }.bind(this),
                 error: function(xhr, status, err){           
                 console.log(err);
@@ -228,17 +223,34 @@ class BalanceSandbox extends Component {
                                         <td>{this.state.rows[index].amount != 'N/A' ? this.state.rows[index].amount.toFixed(2) : 'N/A'}</td>
                                     ) 
                                 }                             
-                                <td><Button onClick={()=>{ this.isCrypto (this.state.rows[index].name) ? this.setState({ modalDepositShow: true }) : this.setState({ currentRow: index, modalDepositFromPayPalShow: true })} }>Deposit</Button></td>
+                                <td><Button onClick={()=>{ this.isCrypto (this.state.rows[index].name) ? this.setState({ modalDepositShow: true }) : this.setState({ currentRow: index, currentSymbol: this.state.rows[index].name, modalDepositFromPayPalShow: true })} }>Deposit</Button></td>
                                 <td><Button onClick={()=>{ this.isCrypto (this.state.rows[index].name) ? this.setState({ modalWithdrawShow: true }) : this.setState({ currentRow: index, currentSymbol: this.state.rows[index].name, modalWithdrawFromFintechGatewayShow: true })} }>Withdraw</Button></td>
                             </tr>
                         ))
                     }
                     </tbody>                    
                 </table>
-                <ModalDialogDeposit show={this.state.modalDepositShow} onHide={modalDepositClose}/>
-                <ModalDialogDepositFromPayPal user={this.props.investor} index={this.state.currentRow} callback_balanceupdate = {this.callback_balanceupdate} show={this.state.modalDepositFromPayPalShow} onHide={modalDepositFromPayPalClose}/>     
-                <ModalDialogWithdraw data={this.state.selectedData} show={this.state.modalWithdrawShow} onHide={modalWithdrawClose}/> 
-                <ModalDialogWithdrawFromFintechGateway callback_balanceUpdate = {this.callback_balanceUpdate} user={this.props.investor} symbol={this.state.currentSymbol} data={this.state.selectedData} show={this.state.modalWithdrawFromFintechGatewayShow} onHide={modalWithdrawFromFintechGatewayClose}/> 
+                <ModalDialogDeposit 
+                    show={this.state.modalDepositShow} 
+                    onHide={modalDepositClose}/>
+                <ModalDialogWithdraw 
+                    data={this.state.selectedData} 
+                    show={this.state.modalWithdrawShow} 
+                    onHide={modalWithdrawClose}/> 
+                <ModalDialogDepositFromPayPal 
+                    user={this.props.investor} 
+                    index={this.state.currentRow} 
+                    symbol={this.state.currentSymbol} 
+                    callback_balanceUpdate = {this.callback_balanceUpdate} 
+                    show={this.state.modalDepositFromPayPalShow} 
+                    onHide={modalDepositFromPayPalClose}/>     
+                <ModalDialogWithdrawFromFintechGateway 
+                    user={this.props.investor} 
+                    callback_balanceUpdate = {this.callback_balanceUpdate}                    
+                    symbol={this.state.currentSymbol} 
+                    data={this.state.selectedData} 
+                    show={this.state.modalWithdrawFromFintechGatewayShow} 
+                    onHide={modalWithdrawFromFintechGatewayClose}/> 
             </div>      
         );
     }
